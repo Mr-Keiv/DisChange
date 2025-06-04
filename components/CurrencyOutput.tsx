@@ -25,7 +25,7 @@ export default function CurrencyOutput({
   const colorScheme = useColorScheme();
   const colors = theme[colorScheme === 'dark' ? 'dark' : 'light'];
   
-  const formattedValue = formatCurrency(value, currency);
+  const formattedValue = formatCurrency(value, currency, 2);
   
   const handleCopy = async () => {
     await copyToClipboard(formattedValue);
@@ -50,7 +50,7 @@ export default function CurrencyOutput({
             styles.label, 
             { 
               color: isPrimary ? 'white' : colors.textSecondary,
-              fontSize: isPrimary ? 16 : 14
+              fontSize: isPrimary ? 14 : 14
             }
           ]}
         >
@@ -61,7 +61,7 @@ export default function CurrencyOutput({
             styles.value, 
             { 
               color: isPrimary ? 'white' : colors.text,
-              fontSize: isPrimary ? 28 : 24
+              fontSize: isPrimary ? 18 : 24
             }
           ]}
           numberOfLines={1}
@@ -81,7 +81,7 @@ export default function CurrencyOutput({
         onPress={handleCopy}
       >
         <Copy 
-          size={isPrimary ? 20 : 18} 
+          size={isPrimary ? 16 : 18} 
           color={isPrimary ? 'white' : colors.textSecondary} 
         />
       </TouchableOpacity>

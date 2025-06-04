@@ -34,14 +34,19 @@ export function ExchangeRateProvider({ children }: { children: React.ReactNode }
       // Fetch exchange rates
       const ratesResponse = await fetch('https://ve.dolarapi.com/v1/dolares');
       const ratesData: ExchangeRate[] = await ratesResponse.json();
+      
+      // Filter only official and bitcoin rates
+      const filteredRates = ratesData.filter(rate => 
+        rate.fuente === 'oficial' 
+      );
 
-      setRates(ratesData);
+      setRates(filteredRates);
       setLastUpdate(new Date());
       setError(null);
 
       // Set default selected rate to BCV if not already selected
       if (!selectedRate) {
-        const bcvRate = ratesData.find(rate => rate.fuente === 'oficial');
+        const bcvRate = filteredRates.find(rate => rate.fuente === 'oficial');
         if (bcvRate) setSelectedRate(bcvRate);
       }
     } catch (err) {

@@ -1,11 +1,11 @@
-export function formatCurrency(amount: number, currency: string): string {
+export function formatCurrency(amount: number, currency: string, maximun: number = 4): string {
   if (isNaN(amount)) return '';
   
   const formatter = new Intl.NumberFormat('es-VE', {
     style: 'currency',
     currency: currency === 'VES' ? 'VES' : 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: maximun,
+    maximumFractionDigits: maximun
   });
   
   return formatter.format(amount);

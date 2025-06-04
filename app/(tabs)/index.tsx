@@ -10,11 +10,12 @@ import {
   ScrollView,
   Alert,
   RefreshControl,
-  StatusBar
+  StatusBar,
+  Image,
+  Platform
 } from 'react-native';
 import { useExchangeRates } from '@/context/ExchangeRateContext';
-import { useRouter } from 'expo-router';
-import { Calculator, RefreshCw } from 'lucide-react-native';
+import { RefreshCw } from 'lucide-react-native';
 import { formatCurrency } from '@/utils/formatters';
 import CurrencyOutput from '@/components/CurrencyOutput';
 import PaymentModal from '@/components/PaymentModal';
@@ -22,23 +23,23 @@ import { fonts, spacing, borderRadius } from '@/constants/theme';
 import CardReader from '../../hooks/nexgo/cardReader';
 
 
-const { width, height } = Dimensions.get('window');
-const isSmallScreen = width < 375;
-const buttonSize = Math.min((width - spacing.xl * 2 - spacing.md * 2.5) / 3, 90);
-const displayFontSize = Math.min(width * 0.1, 40);
+const { width } = Dimensions.get('window');
+// Escalado de dimensiones: un 80% del tamaño original (subiendo un 10% desde el 70%)
+const scaleFactor = 0.8; // Ahora la interfaz será el 80% del tamaño original
 
-export default function CalculatorScreen() { 
+const isSmallScreen = width < 375 * scaleFactor; // Ajustamos el breakpoint
+const buttonSize = Math.min((width - spacing.xl * scaleFactor * 2 - spacing.md * scaleFactor * 2.5) / 3, 90 * scaleFactor);
+const displayFontSize = Math.min(width * 0.1 * scaleFactor, 30 * scaleFactor);
+
+export default function CalculatorScreen() {
   const {
     rates,
     selectedRate,
     setSelectedRate,
-    isLoading,
-    error,
     lastUpdate,
     refreshRates
   } = useExchangeRates();
 
-  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -82,10 +83,14 @@ export default function CalculatorScreen() {
   const handleProceedToPayment = () => {
     if (calculatedAmount > 0 && selectedRate) {
       setShowPaymentModal(true);
+    } else if (!selectedRate) {
+      Alert.alert("Seleccionar Tasa", "Por favor, selecciona una tasa de cambio antes de proceder.");
+    } else {
+      Alert.alert("Monto Inválido", "Ingresa un monto mayor a cero para proceder al pago.");
     }
   };
 
-  const handlePaymentConfirm = async(cedula: string, amount2: string) => {
+  const handlePaymentConfirm = async (cedula: string, amount2: string) => {
     console.log('Cédula:', cedula);
     console.log('Monto:', amount2);
     const paymentData = {
@@ -95,11 +100,11 @@ export default function CalculatorScreen() {
       waiterNum: '1',
       transType: 1
     };
-    
+
     try {
       const result = await CardReader.processPayment(paymentData);
       console.log('Resultado del pago:', result);
-      
+
       Alert.alert(
         'Pago Procesado',
         `Monto: ${formatCurrency(parseFloat(amount2), 'VEF')}\nReferencia: ${paymentData.referenceNo}\nCédula: ${paymentData.documentNumber}\nEstado: ${result || 'Completado'}`
@@ -116,31 +121,57 @@ export default function CalculatorScreen() {
     }
   };
 
-  const renderButton = (content: string | React.ReactNode, onPress: () => void, isWide?: boolean) => (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        {
-          backgroundColor: isDark ? '#1F2937' : '#F3F4F6',
-          width: isWide ? buttonSize * 2.5 + spacing.md : buttonSize,
-          height: buttonSize * 0.8
-        }
-      ]}
-      onPress={onPress}
-    >
-      {typeof content === 'string' ? (
-        <Text style={[
-          styles.buttonText,
+  const renderButton = (content: string | React.ReactNode, onPress: () => void, type: 'number' | 'clear' | 'delete' | 'refresh' | 'wide' = 'number') => {
+    let buttonBackgroundColor = isDark ? '#2E2E3A' : '#E0E0E0';
+    let buttonTextColor = isDark ? '#FFFFFF' : '#333333';
+    let iconColor = isDark ? '#FFFFFF' : '#333333';
+
+
+    if (type === 'delete') {
+      buttonBackgroundColor = isDark ? '#B7A429' : '#F4D03F';
+      buttonTextColor = '#000000';
+      iconColor = '#000000';
+    } else if (type === 'clear') {
+      buttonBackgroundColor = isDark ? '#9B2C2C' : '#EF4444';
+      buttonTextColor = '#FFFFFF';
+      iconColor = '#FFFFFF';
+    } else if (type === 'refresh') {
+      buttonBackgroundColor = isDark ? '#1F7A8C' : '#34D399';
+      buttonTextColor = '#FFFFFF';
+      iconColor = '#FFFFFF';
+    } else if (type === 'wide') {
+      buttonBackgroundColor = isDark ? '#3B4152' : '#C0C0C0';
+      buttonTextColor = isDark ? '#F9FAFB' : '#1F2937';
+    }
+
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.button,
           {
-            color: isDark ? '#F9FAFB' : '#1F2937',
-            fontSize: isSmallScreen ? 20 : 20
+            backgroundColor: buttonBackgroundColor,
+            width: type === 'wide' ? buttonSize * 2 + spacing.md * scaleFactor * 1.5 : buttonSize,
+            height: buttonSize * 0.8,
           }
-        ]}>
-          {content}
-        </Text>
-      ) : content}
-    </TouchableOpacity>
-  );
+        ]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        {typeof content === 'string' ? (
+          <Text style={[
+            styles.buttonText,
+            {
+              color: buttonTextColor,
+              fontSize: (isSmallScreen ? 20 : 22) * scaleFactor, // Escalamos el tamaño del texto del botón
+            }
+          ]}>
+            {content}
+          </Text>
+        ) : React.isValidElement(content) ? React.cloneElement(content as React.ReactElement, { color: iconColor, size: 24 * scaleFactor }) : content}
+      </TouchableOpacity>
+    );
+  };
 
   const renderRateSelector = () => (
     <View style={styles.rateSelector}>
@@ -151,22 +182,23 @@ export default function CalculatorScreen() {
             styles.rateOption,
             selectedRate?.fuente === rate.fuente && styles.rateOptionSelected,
             {
-              backgroundColor: isDark ? '#1F2937' : '#F3F4F6',
-              borderColor: selectedRate?.fuente === rate.fuente ? '#3B82F6' : isDark ? '#374151' : '#E5E7EB'
+              backgroundColor: isDark ? '#2D3748' : '#F7FAFC',
+              borderColor: selectedRate?.fuente === rate.fuente ? '#4299E1' : (isDark ? '#4A5568' : '#E2E8F0'),
             }
           ]}
           onPress={() => setSelectedRate(rate)}
+          activeOpacity={0.7}
         >
           <Text style={[
             styles.rateOptionText,
             selectedRate?.fuente === rate.fuente && styles.rateOptionTextSelected,
-            { color: isDark ? '#F9FAFB' : '#1F2937' }
+            { color: isDark ? '#E2E8F0' : '#2D3748', fontSize: (isSmallScreen ? 13 : 15) * scaleFactor } // Escalamos el tamaño del texto
           ]}>
             {rate.nombre}
           </Text>
           <Text style={[
             styles.rateValue,
-            { color: isDark ? '#9CA3AF' : '#6B7280' }
+            { color: isDark ? '#CBD5E0' : '#718096', fontSize: (isSmallScreen ? 11 : 13) * scaleFactor } // Escalamos el tamaño del texto
           ]}>
             {formatCurrency(rate.promedio, 'VES')}
           </Text>
@@ -179,25 +211,24 @@ export default function CalculatorScreen() {
     <>
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={isDark ? '#111827' : '#FFFFFF'}
+        backgroundColor={isDark ? '#1A202C' : '#FFFFFF'}
       />
-      <SafeAreaView 
-        style={[styles.container, { backgroundColor: isDark ? '#111827' : '#FFFFFF' }]}
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: isDark ? '#1A202C' : '#FFFFFF' }]}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={{ padding: spacing.md * scaleFactor, paddingTop: spacing.xxl * scaleFactor }}>
           <View style={styles.header}>
             <View style={styles.titleContainer}>
-              <Calculator size={24} color={isDark ? '#F9FAFB' : '#1F2937'} />
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={{ width: 40 * scaleFactor, height: 40 * scaleFactor, marginRight: spacing.sm * scaleFactor }}
+              />
               <Text style={[
                 styles.title,
                 {
-                  color: isDark ? '#F9FAFB' : '#1F2937',
-                  fontSize: isSmallScreen ? 24 : 28
+                  color: isDark ? '#E2E8F0' : '#2D3748',
+                  fontSize: (isSmallScreen ? 26 : 32) * scaleFactor, // Escalamos el tamaño del título
+                  fontWeight: '800'
                 }
               ]}>
                 DisChange
@@ -207,23 +238,39 @@ export default function CalculatorScreen() {
               <Text style={[
                 styles.lastUpdate,
                 {
-                  color: isDark ? '#9CA3AF' : '#6B7280',
-                  fontSize: isSmallScreen ? 12 : 14
+                  color: isDark ? '#A0AEC0' : '#718096',
+                  fontSize: (isSmallScreen ? 12 : 14) * scaleFactor, // Escalamos el tamaño del texto
+                  marginTop: spacing.xs * scaleFactor
                 }
               ]}>
                 Última actualización: {new Date(lastUpdate).toLocaleTimeString()}
               </Text>
             )}
           </View>
-
           {renderRateSelector()}
+        </View>
+
+
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={isDark ? '#4CAF50' : '#34D399'}
+            />
+          }
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
 
           <View style={styles.displayContainer}>
             <Text style={[
               styles.amountDisplay,
               {
-                color: isDark ? '#F9FAFB' : '#1F2937',
-                fontSize: displayFontSize
+                color: isDark ? '#E2E8F0' : '#2D3748',
+                fontSize: displayFontSize + (5 * scaleFactor), // Escalamos el tamaño del display
+                fontWeight: '600'
               }
             ]}>
               $ {amount || '0'}
@@ -258,13 +305,14 @@ export default function CalculatorScreen() {
             <View style={styles.row}>
               {renderButton('.', () => handleNumberPress('.'))}
               {renderButton('0', () => handleNumberPress('0'))}
-              {renderButton('⌫', handleDelete)}
+              {renderButton('⌫', handleDelete, 'delete')}
             </View>
             <View style={styles.row}>
-              {renderButton('Borrar', handleClear, true)}
+              {renderButton('Borrar', handleClear, 'clear')}
               {renderButton(
-                <RefreshCw size={20} color={isDark ? '#F9FAFB' : '#1F2937'} />,
-                onRefresh
+                <RefreshCw size={24 * scaleFactor} />, // Escalamos el tamaño del icono
+                onRefresh,
+                'refresh'
               )}
             </View>
           </View>
@@ -287,26 +335,24 @@ export default function CalculatorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:  '#FFFFFF',
   },
   content: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: spacing.xl,
-    paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
+    paddingHorizontal: spacing.lg * scaleFactor,
+    paddingBottom: spacing.xl * scaleFactor,
   },
   header: {
-    marginBottom: isSmallScreen ? spacing.md : spacing.lg,
+    marginBottom: spacing.lg * scaleFactor,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xs * scaleFactor,
   },
   title: {
     fontFamily: fonts.bold,
-    marginLeft: spacing.sm,
   },
   lastUpdate: {
     fontFamily: fonts.regular,
@@ -314,38 +360,46 @@ const styles = StyleSheet.create({
   rateSelector: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: spacing.sm * scaleFactor,
+    marginBottom: spacing.lg * scaleFactor,
   },
   rateOption: {
     flex: 1,
-    minWidth: 100,
-    padding: spacing.sm,
-    borderRadius: borderRadius.md,
-    borderWidth: 2,
+    minWidth: '30%',
+    paddingVertical: spacing.sm * scaleFactor,
+    paddingHorizontal: spacing.xs * scaleFactor,
+    borderRadius: borderRadius.md * scaleFactor,
+    borderWidth: 2 * scaleFactor,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   rateOptionSelected: {
-    borderColor: '#3B82F6',
+    // El color de borde se maneja en el componente
   },
   rateOptionText: {
     fontFamily: fonts.semiBold,
-    fontSize: isSmallScreen ? 12 : 14,
-    marginBottom: spacing.xs,
+    fontSize: (isSmallScreen ? 13 : 15) * scaleFactor,
+    marginBottom: (spacing.xs / 2) * scaleFactor,
+    textAlign: 'center',
   },
   rateOptionTextSelected: {
-    color: '#3B82F6',
+    // El color de texto activo se maneja en el componente
   },
   rateValue: {
     fontFamily: fonts.medium,
-    fontSize: isSmallScreen ? 10 : 12,
+    fontSize: (isSmallScreen ? 11 : 13) * scaleFactor,
+    textAlign: 'center',
   },
   displayContainer: {
-    marginBottom: isSmallScreen ? spacing.lg : spacing.xl,
+    marginBottom: spacing.xl * scaleFactor,
+    alignItems: 'flex-end',
+    paddingHorizontal: spacing.sm * scaleFactor,
   },
   amountDisplay: {
     fontFamily: fonts.bold,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm * scaleFactor,
+    textAlign: 'right',
+    width: '100%',
   },
   keypad: {
     justifyContent: 'flex-end',
@@ -353,12 +407,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md * scaleFactor,
   },
   button: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg * scaleFactor,
+    flexGrow: 1,
+    marginHorizontal: (spacing.xs / 2) * scaleFactor,
   },
   buttonText: {
     fontFamily: fonts.semiBold,

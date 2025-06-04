@@ -7,15 +7,16 @@ import {
   useColorScheme,
   SafeAreaView,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  Dimensions
 } from 'react-native';
 import { usePayment } from '@/context/PaymentContext';
 import { useExchangeRates } from '@/context/ExchangeRateContext';
-import { CreditCard, Phone, Building2 } from 'lucide-react-native';
-import { formatCurrency } from '@/utils/formatters';
-import { fonts, spacing, borderRadius } from '@/constants/theme';
+import { fonts, spacing, borderRadius, theme } from '@/constants/theme';
 import { StatusBar } from 'expo-status-bar';
 
+const { width } = Dimensions.get('window');
+const isSmallScreen = width < 375;
 export default function PaymentScreen() {
   const { amount, currency } = usePayment();
   const { selectedRate } = useExchangeRates();
@@ -25,6 +26,8 @@ export default function PaymentScreen() {
   const [cedula, setCedula] = useState('');
   const [reference, setReference] = useState('');
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(true);
+
+  const colors = theme[colorScheme === 'dark' ? 'dark' : 'light'];
 
   const [activeTab, setActiveTab] = useState('mobile');
 
@@ -175,59 +178,12 @@ export default function PaymentScreen() {
       <StatusBar />
       <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#111827' : '#FFFFFF' }]}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: isDark ? '#F9FAFB' : '#1F2937' }]}>
-              Validar Pago
+        <View style={styles.comingSoonContainer}>
+            <Text style={[styles.comingSoonText, { color: colors.textSecondary }]}>
+              Próximamente
             </Text>
           </View>
-
-          <View style={styles.methodSelector}>
-            <TouchableOpacity
-              style={[
-                styles.methodButton,
-                activeTab === 'mobile' && styles.methodButtonActive,
-                { backgroundColor: isDark ? '#1F2937' : '#F3F4F6' }
-              ]}
-              onPress={() => setActiveTab('mobile')}
-            >
-              <Phone
-                size={24}
-                color={activeTab === 'mobile' ? '#3B82F6' : isDark ? '#9CA3AF' : '#6B7280'}
-              />
-              <Text
-                style={[
-                  styles.methodButtonText,
-                  { color: activeTab === 'mobile' ? '#3B82F6' : isDark ? '#9CA3AF' : '#6B7280' }
-                ]}
-              >
-                Pago Móvil
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.methodButton,
-                activeTab === 'bank' && styles.methodButtonActive,
-                { backgroundColor: isDark ? '#1F2937' : '#F3F4F6' }
-              ]}
-              onPress={() => setActiveTab('bank')}
-            >
-              <Building2
-                size={24}
-                color={activeTab === 'bank' ? '#3B82F6' : isDark ? '#9CA3AF' : '#6B7280'}
-              />
-              <Text
-                style={[
-                  styles.methodButtonText,
-                  { color: activeTab === 'bank' ? '#3B82F6' : isDark ? '#9CA3AF' : '#6B7280' }
-                ]}
-              >
-                Transferencia
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {renderPaymentMethod()}
+        
         </ScrollView>
       </SafeAreaView>
     </>
@@ -235,6 +191,17 @@ export default function PaymentScreen() {
 }
 
 const styles = StyleSheet.create({
+  comingSoonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  comingSoonText: {
+    fontFamily: fonts.medium,
+    fontSize: isSmallScreen ? 16 : 18,
+    opacity: 0.7,
+  },
   container: {
     flex: 1,
   },
@@ -284,7 +251,7 @@ const styles = StyleSheet.create({
   },
   methodButtonActive: {
     borderWidth: 2,
-    borderColor: '#3B82F6',
+    borderColor: '#0f065a',
   },
   methodButtonText: {
     fontFamily: fonts.medium,
@@ -320,7 +287,7 @@ const styles = StyleSheet.create({
   },
   paymentTypeButtonActive: {
     borderWidth: 2,
-    borderColor: '#3B82F6'
+    borderColor: '#0f065a'
   },
   paymentTypeText: {
     fontFamily: fonts.medium,
@@ -347,7 +314,7 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   confirmButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#0f065a',
     padding: spacing.md,
     borderRadius: borderRadius.md,
     alignItems: 'center',

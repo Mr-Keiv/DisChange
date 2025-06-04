@@ -15,7 +15,7 @@ export default function TabLayout() {
           backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
           borderTopColor: isDark ? '#374151' : '#E5E7EB'
         },
-        tabBarActiveTintColor: '#3B82F6',
+        tabBarActiveTintColor: '#0f065a',
         tabBarInactiveTintColor: isDark ? '#9CA3AF' : '#6B7280',
       }}>
       <Tabs.Screen
@@ -30,13 +30,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="payment"
         options={{
-          title: 'Pago',
+          title: 'Validar Pago',
           tabBarIcon: ({ color, size }) => (
             <CreditCard size={size} color={color} strokeWidth={2} />
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="rates"
         options={{
           title: 'Tasas',
@@ -44,7 +44,7 @@ export default function TabLayout() {
             <RefreshCw size={size} color={color} strokeWidth={2} />
           ),
         }}
-      />
+      /> */}
     </Tabs>
   );
 }

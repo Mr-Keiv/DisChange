@@ -34,10 +34,15 @@ export default function PaymentModal({
   if (!rate) return null;
 
   const handleConfirm = () => {
-    if (cedula.trim().length >= 6 ) {
-      const montoCalculado = (Number((amount).toFixed(2)) * rate.promedio).toFixed(2);
-      const montoCalculadoFormateado = Number(montoCalculado) * 100;
-      onConfirm(cedula, montoCalculadoFormateado                                                                                                                                                                                                                                                                              .toString());
+    if (cedula.trim().length >= 6) {
+      // Ensure amount has max 2 decimals and multiply by rate
+      const baseAmount = Number(amount.toFixed(2));
+      const calculatedAmount = (baseAmount * rate.promedio).toFixed(2);
+      
+      // Convert to integer by multiplying by 100 to move decimals left
+      const formattedAmount = Math.round(Number(calculatedAmount) * 100);
+      
+      onConfirm(cedula, formattedAmount.toString());
       setCedula('');
     }
   };
@@ -112,10 +117,10 @@ export default function PaymentModal({
                 Monto a pagar
               </Text>
               <Text style={[styles.amountValue, { color: isDark ? '#F9FAFB' : '#1F2937' }]}>
-                {formatCurrency(amount, 'USD')}
+                {formatCurrency(amount, 'USD', 2)}
               </Text>
               <Text style={[styles.rateInfo, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
-                {rate.nombre}: {formatCurrency(Number((amount).toFixed(2)) * rate.promedio, 'VES')}
+                {rate.nombre}: {formatCurrency(Number((amount).toFixed(2)) * rate.promedio, 'VES', 2)}
               </Text>
             </View>
             {renderPaymentForm()}
@@ -193,7 +198,7 @@ const styles = StyleSheet.create({
   },
   paymentTypeButtonActive: {
     borderWidth: 2,
-    borderColor: '#3B82F6'
+    borderColor: '#0f065a'
   },
   paymentTypeText: {
     fontFamily: fonts.medium,
@@ -220,7 +225,7 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   confirmButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#0f065a',
     padding: spacing.md,
     borderRadius: borderRadius.md,
     alignItems: 'center',
