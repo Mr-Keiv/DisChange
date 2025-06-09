@@ -68,6 +68,16 @@ export default function CurrencyOutput({
         >
           {formattedValue}
         </Text>
+        <Text
+          style={[
+            styles.tapToPay,
+            {
+              color: isPrimary ? 'rgba(255,255,255,0.7)' : colors.textSecondary
+            }
+          ]}
+        >
+          Toca para pagar
+        </Text>
       </View>
       <TouchableOpacity 
         style={[
@@ -109,6 +119,11 @@ const styles = StyleSheet.create({
   },
   value: {
     fontFamily: fonts.bold,
+  },
+  tapToPay: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    marginTop: spacing.xs,
   },
   copyButton: {
     padding: spacing.sm,

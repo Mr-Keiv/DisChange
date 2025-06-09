@@ -1,13 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ExchangeRateProvider } from '@/context/ExchangeRateContext';
 import { PaymentProvider } from '@/context/PaymentContext';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { SplashScreen } from 'expo-router';
-
-SplashScreen.preventAutoHideAsync();
+import { useColorScheme } from 'react-native';
+import SplashScreenComponetn from '@/components/SplashScreen';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -19,14 +18,15 @@ export default function RootLayout() {
     Inter_700Bold
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
+  const [isAppReady, setIsAppReady] = useState(false);
 
-  if (!fontsLoaded && !fontError) {
-    return null;
+
+  if (!fontsLoaded || !isAppReady) {
+    return (
+      <SplashScreenComponetn
+        onFinish={(isCancelled) => !isCancelled && setIsAppReady(true)}
+      />
+    );
   }
 
   return (
