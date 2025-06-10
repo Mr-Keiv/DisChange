@@ -17,4 +17,4 @@ export default function SplashScreen({ onFinish = (isCancelled) => {} } : { onFi
       }}
     />   
   )
-}
+}          

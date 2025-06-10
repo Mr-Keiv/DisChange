@@ -22,14 +22,13 @@ import PaymentModal from '@/components/PaymentModal';
 import { fonts, spacing, borderRadius } from '@/constants/theme';
 import CardReader from '../../hooks/nexgo/cardReader';
 
-
 const { width } = Dimensions.get('window');
-// Escalado de dimensiones: un 80% del tamaño original (subiendo un 10% desde el 70%)
-const scaleFactor = 0.8; // Ahora la interfaz será el 80% del tamaño original
+// Escalado de dimensiones mejorado
+const scaleFactor = 0.7; // Aumentado de 0.6 a 0.7
 
-const isSmallScreen = width < 375 * scaleFactor; // Ajustamos el breakpoint
+const isSmallScreen = width < 375 * scaleFactor;
 const buttonSize = Math.min((width - spacing.xl * scaleFactor * 2 - spacing.md * scaleFactor * 2.5) / 3, 90 * scaleFactor);
-const displayFontSize = Math.min(width * 0.1 * scaleFactor, 30 * scaleFactor);
+const displayFontSize = Math.min(width * 0.12 * scaleFactor, 140 * scaleFactor); // Display más grande
 
 export default function CalculatorScreen() {
   const {
@@ -126,7 +125,6 @@ export default function CalculatorScreen() {
     let buttonTextColor = isDark ? '#FFFFFF' : '#333333';
     let iconColor = isDark ? '#FFFFFF' : '#333333';
 
-
     if (type === 'delete') {
       buttonBackgroundColor = isDark ? '#B7A429' : '#F4D03F';
       buttonTextColor = '#000000';
@@ -144,7 +142,6 @@ export default function CalculatorScreen() {
       buttonTextColor = isDark ? '#F9FAFB' : '#1F2937';
     }
 
-
     return (
       <TouchableOpacity
         style={[
@@ -152,7 +149,7 @@ export default function CalculatorScreen() {
           {
             backgroundColor: buttonBackgroundColor,
             width: type === 'wide' ? buttonSize * 2 + spacing.md * scaleFactor * 1.5 : buttonSize,
-            height: buttonSize * 0.8,
+            height: buttonSize * 0.8, // Altura original
           }
         ]}
         onPress={onPress}
@@ -163,12 +160,12 @@ export default function CalculatorScreen() {
             styles.buttonText,
             {
               color: buttonTextColor,
-              fontSize: (isSmallScreen ? 20 : 22) * scaleFactor, // Escalamos el tamaño del texto del botón
+              fontSize: type === 'number' ? 32 * scaleFactor : 18 * scaleFactor, // Solo números más grandes
             }
           ]}>
             {content}
           </Text>
-        ) : React.isValidElement(content) ? React.cloneElement(content as React.ReactElement, { color: iconColor, size: 24 * scaleFactor }) : content}
+        ) : React.isValidElement(content) ? React.cloneElement(content as React.ReactElement, { color: iconColor, size: 28 * scaleFactor }) : content}
       </TouchableOpacity>
     );
   };
@@ -192,13 +189,13 @@ export default function CalculatorScreen() {
           <Text style={[
             styles.rateOptionText,
             selectedRate?.fuente === rate.fuente && styles.rateOptionTextSelected,
-            { color: isDark ? '#E2E8F0' : '#2D3748', fontSize: (isSmallScreen ? 13 : 15) * scaleFactor } // Escalamos el tamaño del texto
+            { color: isDark ? '#E2E8F0' : '#2D3748', fontSize: (isSmallScreen ? 15 : 17) * scaleFactor } // Texto más grande
           ]}>
             {rate.nombre}
           </Text>
           <Text style={[
             styles.rateValue,
-            { color: isDark ? '#CBD5E0' : '#718096', fontSize: (isSmallScreen ? 11 : 13) * scaleFactor } // Escalamos el tamaño del texto
+            { color: isDark ? '#CBD5E0' : '#718096', fontSize: (isSmallScreen ? 13 : 15) * scaleFactor } // Texto más grande
           ]}>
             {formatCurrency(rate.promedio, 'VES')}
           </Text>
@@ -216,40 +213,37 @@ export default function CalculatorScreen() {
       <SafeAreaView
         style={[styles.container, { backgroundColor: isDark ? '#1A202C' : '#FFFFFF' }]}
       >
-        <View style={{ padding: spacing.md * scaleFactor, paddingTop: spacing.xxl * scaleFactor }}>
-          <View style={styles.header}>
+        {/* Header reorganizado */}
+        <View style={styles.headerContainer}>
+          {/* Logo y nombre a la izquierda */}
+          <View style={styles.leftHeader}>
             <View style={styles.titleContainer}>
               <Image
                 source={require('../../assets/images/icon.png')}
-                style={{ width: 40 * scaleFactor, height: 40 * scaleFactor, marginRight: spacing.sm * scaleFactor }}
+                style={{ width: 45 * scaleFactor, height: 45 * scaleFactor, marginRight: spacing.sm * scaleFactor }}
               />
-              <Text style={[
-                styles.title,
-                {
-                  color: isDark ? '#E2E8F0' : '#2D3748',
-                  fontSize: (isSmallScreen ? 26 : 32) * scaleFactor, // Escalamos el tamaño del título
-                  fontWeight: '800'
-                }
-              ]}>
-                DisChange
-              </Text>
+              <View>
+               
+                {lastUpdate && (
+                  <Text style={[
+                    styles.lastUpdate,
+                    {
+                      color: isDark ? '#A0AEC0' : '#718096',
+                      fontSize: (isSmallScreen ? 14 : 16) * scaleFactor, // Texto más grande
+                    }
+                  ]}>
+                    Última actualización: {new Date(lastUpdate).toLocaleTimeString()}
+                  </Text>
+                )}
+              </View>
             </View>
-            {lastUpdate && (
-              <Text style={[
-                styles.lastUpdate,
-                {
-                  color: isDark ? '#A0AEC0' : '#718096',
-                  fontSize: (isSmallScreen ? 12 : 14) * scaleFactor, // Escalamos el tamaño del texto
-                  marginTop: spacing.xs * scaleFactor
-                }
-              ]}>
-                Última actualización: {new Date(lastUpdate).toLocaleTimeString()}
-              </Text>
-            )}
           </View>
-          {renderRateSelector()}
+          
+          {/* Selector de tasas a la derecha */}
+          <View style={styles.rightHeader}>
+            {renderRateSelector()}
+          </View>
         </View>
-
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -260,6 +254,7 @@ export default function CalculatorScreen() {
               tintColor={isDark ? '#4CAF50' : '#34D399'}
             />
           }
+          scrollEnabled={false}
           style={styles.content}
           showsVerticalScrollIndicator={false}
         >
@@ -269,7 +264,7 @@ export default function CalculatorScreen() {
               styles.amountDisplay,
               {
                 color: isDark ? '#E2E8F0' : '#2D3748',
-                fontSize: displayFontSize + (5 * scaleFactor), // Escalamos el tamaño del display
+                fontSize: displayFontSize + (8 * scaleFactor), // Display aún más grande
                 fontWeight: '600'
               }
             ]}>
@@ -288,29 +283,29 @@ export default function CalculatorScreen() {
 
           <View style={styles.keypad}>
             <View style={styles.row}>
-              {renderButton('7', () => handleNumberPress('7'))}
-              {renderButton('8', () => handleNumberPress('8'))}
-              {renderButton('9', () => handleNumberPress('9'))}
+              {renderButton('7', () => handleNumberPress('7'), 'number')}
+              {renderButton('8', () => handleNumberPress('8'), 'number')}
+              {renderButton('9', () => handleNumberPress('9'), 'number')}
             </View>
             <View style={styles.row}>
-              {renderButton('4', () => handleNumberPress('4'))}
-              {renderButton('5', () => handleNumberPress('5'))}
-              {renderButton('6', () => handleNumberPress('6'))}
+              {renderButton('4', () => handleNumberPress('4'), 'number')}
+              {renderButton('5', () => handleNumberPress('5'), 'number')}
+              {renderButton('6', () => handleNumberPress('6'), 'number')}
             </View>
             <View style={styles.row}>
-              {renderButton('1', () => handleNumberPress('1'))}
-              {renderButton('2', () => handleNumberPress('2'))}
-              {renderButton('3', () => handleNumberPress('3'))}
+              {renderButton('1', () => handleNumberPress('1'), 'number')}
+              {renderButton('2', () => handleNumberPress('2'), 'number')}
+              {renderButton('3', () => handleNumberPress('3'), 'number')}
             </View>
             <View style={styles.row}>
-              {renderButton('.', () => handleNumberPress('.'))}
-              {renderButton('0', () => handleNumberPress('0'))}
+              {renderButton('.', () => handleNumberPress('.'), 'number')}
+              {renderButton('0', () => handleNumberPress('0'), 'number')}
               {renderButton('⌫', handleDelete, 'delete')}
             </View>
             <View style={styles.row}>
               {renderButton('Borrar', handleClear, 'clear')}
               {renderButton(
-                <RefreshCw size={24 * scaleFactor} />, // Escalamos el tamaño del icono
+                <RefreshCw size={28 * scaleFactor} />, // Icono más grande
                 onRefresh,
                 'refresh'
               )}
@@ -343,31 +338,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg * scaleFactor,
     paddingBottom: spacing.xl * scaleFactor,
   },
-  header: {
-    marginBottom: spacing.lg * scaleFactor,
+  // Nuevo estilo para el header reorganizado
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.lg * scaleFactor,
+    paddingTop: spacing.xl * scaleFactor,
+    paddingBottom: spacing.lg * scaleFactor,
+    marginBottom: spacing.md * scaleFactor,
+  },
+  leftHeader: {
+    flex: 1,
+  },
+  rightHeader: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs * scaleFactor,
   },
   title: {
     fontFamily: fonts.bold,
   },
   lastUpdate: {
     fontFamily: fonts.regular,
+    marginTop: spacing.xs * 0.5,
   },
   rateSelector: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm * scaleFactor,
-    marginBottom: spacing.lg * scaleFactor,
+    flexDirection: 'column',
+    gap: spacing.xs * scaleFactor,
+    minWidth: 120 * scaleFactor,
   },
   rateOption: {
-    flex: 1,
-    minWidth: '30%',
     paddingVertical: spacing.sm * scaleFactor,
-    paddingHorizontal: spacing.xs * scaleFactor,
+    paddingHorizontal: spacing.sm * scaleFactor,
     borderRadius: borderRadius.md * scaleFactor,
     borderWidth: 2 * scaleFactor,
     alignItems: 'center',
@@ -378,7 +384,6 @@ const styles = StyleSheet.create({
   },
   rateOptionText: {
     fontFamily: fonts.semiBold,
-    fontSize: (isSmallScreen ? 13 : 15) * scaleFactor,
     marginBottom: (spacing.xs / 2) * scaleFactor,
     textAlign: 'center',
   },
@@ -387,7 +392,6 @@ const styles = StyleSheet.create({
   },
   rateValue: {
     fontFamily: fonts.medium,
-    fontSize: (isSmallScreen ? 11 : 13) * scaleFactor,
     textAlign: 'center',
   },
   displayContainer: {
@@ -418,5 +422,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: fonts.semiBold,
+    fontWeight: '600',
   }
 });

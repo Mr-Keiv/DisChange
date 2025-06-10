@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, StyleProp, ViewStyle, useColorScheme } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, StyleProp, ViewStyle, useColorScheme, Dimensions } from 'react-native';
 import { formatCurrency } from '@/utils/formatters';
 import { Copy } from 'lucide-react-native';
 import { copyToClipboard } from '@/utils/clipboard';
@@ -13,6 +13,10 @@ interface CurrencyOutputProps {
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
 }
+
+const { width, height } = Dimensions.get('window');
+const scaleFactor = width < 375 ? 0.6 : 0.7;
+const isSmallScreen = width < 375;
 
 export default function CurrencyOutput({
   value,
@@ -38,6 +42,8 @@ export default function CurrencyOutput({
         {
           backgroundColor: isPrimary ? colors.primary : colors.backgroundSecondary,
           borderColor: isPrimary ? colors.primary : colors.border,
+          padding: spacing.sm * scaleFactor,
+          marginBottom: spacing.sm * scaleFactor,
         },
         style
       ]}
@@ -50,7 +56,8 @@ export default function CurrencyOutput({
             styles.label, 
             { 
               color: isPrimary ? 'white' : colors.textSecondary,
-              fontSize: isPrimary ? 14 : 14
+              fontSize: (isPrimary ? 16 : 11) * scaleFactor,
+              marginBottom: spacing.xs * scaleFactor * 0.5,
             }
           ]}
         >
@@ -61,10 +68,12 @@ export default function CurrencyOutput({
             styles.value, 
             { 
               color: isPrimary ? 'white' : colors.text,
-              fontSize: isPrimary ? 18 : 24
+              fontSize: (isPrimary ? 24 : 18) * scaleFactor
             }
           ]}
           numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.7}
         >
           {formattedValue}
         </Text>
@@ -72,29 +81,16 @@ export default function CurrencyOutput({
           style={[
             styles.tapToPay,
             {
-              color: isPrimary ? 'rgba(255,255,255,0.7)' : colors.textSecondary
+              color: isPrimary ? 'rgba(255,255,255,0.7)' : colors.textSecondary,
+              fontSize: 15 * scaleFactor,
+              marginTop: spacing.xs * scaleFactor * 0.3,
             }
           ]}
         >
           Toca para pagar
         </Text>
       </View>
-      <TouchableOpacity 
-        style={[
-          styles.copyButton,
-          {
-            backgroundColor: isPrimary 
-              ? 'rgba(255, 255, 255, 0.2)' 
-              : colors.backgroundSecondary
-          }
-        ]} 
-        onPress={handleCopy}
-      >
-        <Copy 
-          size={isPrimary ? 16 : 18} 
-          color={isPrimary ? 'white' : colors.textSecondary} 
-        />
-      </TouchableOpacity>
+  
     </TouchableOpacity>
   );
 }
@@ -106,27 +102,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderRadius: borderRadius.md * scaleFactor,
+    minHeight: 80 * scaleFactor, // Altura mínima más pequeña
   },
   content: {
     flex: 1,
   },
   label: {
     fontFamily: fonts.medium,
-    marginBottom: spacing.xs,
   },
   value: {
     fontFamily: fonts.bold,
+    flexShrink: 1, // Permite que el texto se encoja si es necesario
   },
   tapToPay: {
     fontFamily: fonts.regular,
-    fontSize: 12,
-    marginTop: spacing.xs,
   },
   copyButton: {
-    padding: spacing.sm,
-    borderRadius: borderRadius.round,
+    borderRadius: borderRadius.round * scaleFactor,
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });
